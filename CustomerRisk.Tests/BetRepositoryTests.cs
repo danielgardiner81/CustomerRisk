@@ -11,18 +11,18 @@ namespace CustomerRisk.Tests
     [TestFixture]
     public class BetRepositoryTests
     {
-        private MockFileSystem mockFileSystem;
+        private MockFileSystem _mockFileSystem;
 
         [SetUp]
         public void Setup()
         {
-            mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
+            _mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
         }
 
         [Test]
         public void GetSettledBets()
         {
-            mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,Win
+            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,Win
 1,1,6,50,250
 2,1,3,5,0"));
 
@@ -30,23 +30,23 @@ namespace CustomerRisk.Tests
 
             Assert.That(actual.Count(), Is.EqualTo(4));
 
-            Assert.That(actual.First().CustomerId, Is.EqualTo(1));
-            Assert.That(actual.First().EventId, Is.EqualTo(1));
-            Assert.That(actual.First().ParticipantId, Is.EqualTo(6));
-            Assert.That(actual.First().Stake, Is.EqualTo(50));
-            Assert.That(actual.Last().Win, Is.EqualTo(250));
+            Assert.That(actual.Skip(0).First().CustomerId, Is.EqualTo(1));
+            Assert.That(actual.Skip(0).First().EventId, Is.EqualTo(1));
+            Assert.That(actual.Skip(0).First().ParticipantId, Is.EqualTo(6));
+            Assert.That(actual.Skip(0).First().Stake, Is.EqualTo(50));
+            Assert.That(actual.Skip(0).First().Win, Is.EqualTo(250));
 
-            Assert.That(actual.Last().CustomerId, Is.EqualTo(2));
-            Assert.That(actual.Last().EventId, Is.EqualTo(1));
-            Assert.That(actual.Last().ParticipantId, Is.EqualTo(3));
-            Assert.That(actual.Last().Stake, Is.EqualTo(5));
-            Assert.That(actual.Last().Win, Is.EqualTo(0));
+            Assert.That(actual.Skip(1).First().CustomerId, Is.EqualTo(2));
+            Assert.That(actual.Skip(1).First().EventId, Is.EqualTo(1));
+            Assert.That(actual.Skip(1).First().ParticipantId, Is.EqualTo(3));
+            Assert.That(actual.Skip(1).First().Stake, Is.EqualTo(5));
+            Assert.That(actual.Skip(1).First().Win, Is.EqualTo(0));
         }
 
         [Test]
         public void GetUnsettledBets()
         {
-            mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,To Win
+            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,To Win
 1,11,4,50,500
 3,11,6,50,400"));
 
@@ -54,22 +54,22 @@ namespace CustomerRisk.Tests
 
             Assert.That(actual.Count(), Is.EqualTo(4));
 
-            Assert.That(actual.First().CustomerId, Is.EqualTo(1));
-            Assert.That(actual.First().EventId, Is.EqualTo(11));
-            Assert.That(actual.First().ParticipantId, Is.EqualTo(4));
-            Assert.That(actual.First().Stake, Is.EqualTo(50));
-            Assert.That(actual.Last().Win, Is.EqualTo(500));
+            Assert.That(actual.Skip(0).First().CustomerId, Is.EqualTo(1));
+            Assert.That(actual.Skip(0).First().EventId, Is.EqualTo(11));
+            Assert.That(actual.Skip(0).First().ParticipantId, Is.EqualTo(4));
+            Assert.That(actual.Skip(0).First().Stake, Is.EqualTo(50));
+            Assert.That(actual.Skip(0).First().Win, Is.EqualTo(500));
 
-            Assert.That(actual.Last().CustomerId, Is.EqualTo(3));
-            Assert.That(actual.Last().EventId, Is.EqualTo(11));
-            Assert.That(actual.Last().ParticipantId, Is.EqualTo(6));
-            Assert.That(actual.Last().Stake, Is.EqualTo(50));
-            Assert.That(actual.Last().Win, Is.EqualTo(400));
+            Assert.That(actual.Skip(1).First().CustomerId, Is.EqualTo(3));
+            Assert.That(actual.Skip(1).First().EventId, Is.EqualTo(11));
+            Assert.That(actual.Skip(1).First().ParticipantId, Is.EqualTo(6));
+            Assert.That(actual.Skip(1).First().Stake, Is.EqualTo(50));
+            Assert.That(actual.Skip(1).First().Win, Is.EqualTo(400));
         }
 
         private IEnumerable<Bet> Test(Func<BetRepository, IEnumerable<Bet>> func)
         {
-            var betRepository = new BetRepository(mockFileSystem);
+            var betRepository = new BetRepository(_mockFileSystem);
             return func(betRepository);
         }
     }
