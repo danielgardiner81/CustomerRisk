@@ -12,6 +12,7 @@ namespace CustomerRisk.Tests
     public class BetRepositoryTests
     {
         private MockFileSystem _mockFileSystem;
+        private BetRepository _betRepository;
 
         [SetUp]
         public void Setup()
@@ -22,13 +23,13 @@ namespace CustomerRisk.Tests
         [Test]
         public void GetSettledBets()
         {
-            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,Win
+            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"CustomerId,EventId,ParticipantId,Stake,Win
 1,1,6,50,250
 2,1,3,5,0"));
 
             var actual = Test(repo => repo.GetSettledBets());
 
-            Assert.That(actual.Count(), Is.EqualTo(4));
+            Assert.That(actual.Count(), Is.EqualTo(2));
 
             Assert.That(actual.Skip(0).First().CustomerId, Is.EqualTo(1));
             Assert.That(actual.Skip(0).First().EventId, Is.EqualTo(1));
@@ -46,13 +47,13 @@ namespace CustomerRisk.Tests
         [Test]
         public void GetUnsettledBets()
         {
-            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(@"Customer,Event,Participant,Stake,To Win
+            _mockFileSystem.AddFile("resources/unsettled.csv", new MockFileData(@"CustomerId,EventId,ParticipantId,Stake,Win
 1,11,4,50,500
 3,11,6,50,400"));
 
             var actual = Test(repo => repo.GetUnsettledBets());
 
-            Assert.That(actual.Count(), Is.EqualTo(4));
+            Assert.That(actual.Count(), Is.EqualTo(2));
 
             Assert.That(actual.Skip(0).First().CustomerId, Is.EqualTo(1));
             Assert.That(actual.Skip(0).First().EventId, Is.EqualTo(11));
@@ -67,10 +68,24 @@ namespace CustomerRisk.Tests
             Assert.That(actual.Skip(1).First().Win, Is.EqualTo(400));
         }
 
+        [Test]
+        public void GetSettledBets_Real_Data()
+        {
+            _mockFileSystem.AddFile("resources/settled.csv", new MockFileData(Resources.Settled));
+            Assert.That(Test(repo => repo.GetSettledBets()).Count(), Is.EqualTo(50));
+        }
+
+        [Test]
+        public void GetUnsettledBets_Real_Data()
+        {
+            _mockFileSystem.AddFile("resources/unsettled.csv", new MockFileData(Resources.Unsettled));
+            Assert.That(Test(repo => repo.GetUnsettledBets()).Count(), Is.EqualTo(22));
+        }
+
         private IEnumerable<Bet> Test(Func<BetRepository, IEnumerable<Bet>> func)
         {
-            var betRepository = new BetRepository(_mockFileSystem);
-            return func(betRepository);
+            _betRepository = new BetRepository(_mockFileSystem);
+            return func(_betRepository);
         }
     }
 }

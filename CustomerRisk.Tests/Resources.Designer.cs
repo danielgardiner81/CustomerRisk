@@ -61,7 +61,7 @@ namespace CustomerRisk.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Customer,Event,Participant,Stake,Win
+        ///   Looks up a localized string similar to CustomerId,EventId,ParticipantId,Stake,Win
         ///1,1,6,50,250
         ///2,1,3,5,0
         ///3,1,3,20,0

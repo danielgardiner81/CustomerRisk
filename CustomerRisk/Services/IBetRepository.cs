@@ -1,10 +1,11 @@
-﻿using CustomerRisk.Model;
+﻿using System.Collections.Generic;
+using CustomerRisk.Model;
 
 namespace CustomerRisk.Services
 {
     public interface IBetRepository
     {
-        Bets GetSettledBets();
-        Bets GetUnsettledBets();
+        IEnumerable<Bet> GetSettledBets();
+        IEnumerable<Bet> GetUnsettledBets();
     }
 }

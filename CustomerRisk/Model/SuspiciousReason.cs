@@ -5,6 +5,6 @@
         SuspiciousWinRateCustomer,
         SuspiciousStake,
         HighlySuspiciousStake,
-        HighWinRate,
+        HighWinAmount,
     }
 }

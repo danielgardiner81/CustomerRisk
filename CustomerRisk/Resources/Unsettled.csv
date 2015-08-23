@@ -1,4 +1,4 @@
-Customer,Event,Participant,Stake,To Win
+CustomerId,EventId,ParticipantId,Stake,Win
 1,11,4,50,500
 3,11,6,50,400
 4,11,7,300,1200
