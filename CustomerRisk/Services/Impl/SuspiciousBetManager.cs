@@ -5,7 +5,7 @@ using CustomerRisk.Model;
 
 namespace CustomerRisk.Services.Impl
 {
-    public class SuspiciousBetManager
+    public class SuspiciousBetManager : ISuspiciousBetManager
     {
         private readonly IBetRepository _betRepository;
 
@@ -16,8 +16,8 @@ namespace CustomerRisk.Services.Impl
 
         public decimal WinRateThreshold { get; set; } = (decimal) 0.6;
         public decimal HighWinThreashold { get; set; } = 1000;
-        public int SuspiciousStakeThreshold { get; } = 10;
-        public int HighlySuspiciousStakeThreshold { get; } = 30;
+        public decimal SuspiciousStakeThreshold { get; set; } = 10;
+        public decimal HighlySuspiciousStakeThreshold { get; set; } = 30;
 
         public IEnumerable<Customer> GetCustomersWithSuspiciousWinRates()
         {
