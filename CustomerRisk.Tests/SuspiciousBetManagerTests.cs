@@ -19,7 +19,7 @@ namespace CustomerRisk.Tests
         private IEnumerable<Bet> _unsettledBetsSuspiciousStake;
         private IEnumerable<Bet> _unsettledBetsHighlySuspiciousStake;
         private IEnumerable<Bet> _unsettledBetsHighWinAmount;
-        private SuspiciousBetManager _engine;
+        private SuspiciousBetManager _suspiciousBetManager;
 
         [SetUp]
         public void SetUp()
@@ -75,7 +75,7 @@ namespace CustomerRisk.Tests
                     new Bet { CustomerId = 1, EventId = 2, ParticipantId = 1, Stake = 50, Win = 500 },
                     new Bet { CustomerId = 1, EventId = 3, ParticipantId = 1, Stake = 50, Win = 500 },
                     new Bet { CustomerId = 2, EventId = 1, ParticipantId = 1, Stake = 50, Win = 500 },
-                    new Bet { CustomerId = 3, EventId = 1, ParticipantId = 1, Stake = 50, Win = 500 },
+                    new Bet { CustomerId = 3, EventId = 1, ParticipantId = 1, Stake = 50, Win = 0 },
                 };
         }
 
@@ -97,8 +97,32 @@ namespace CustomerRisk.Tests
             var actual = Test(manager => manager.GetCustomersWithSuspiciousWinRates());
 
             Assert.That(actual.Count(), Is.EqualTo(2));
-            Assert.That(actual.Single(o => o.CustomerId == 1).WinRate, Is.EqualTo((decimal) 3 / (decimal) 2));
+            Assert.That(actual.Single(o => o.CustomerId == 1).WinRate, Is.EqualTo((decimal) 2 / 3));
             Assert.That(actual.Single(o => o.CustomerId == 2).WinRate, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void GetCustomersWithSuspiciousWinRates_Ensure_WinRateThreshold_Is_60pc()
+        {
+            Assert.That(new SuspiciousBetManager(null).WinRateThreshold, Is.EqualTo(0.6));
+        }
+
+        [Test]
+        public void GetCustomersWithSuspiciousWinRates_Ensure_WinRateThreshold_Is_Used()
+        {
+            SetBetData(_settledBetsSuspiciousWinRates, null);
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.WinRateThreshold = -1; // any rate should be suspicious, even 0%
+                    return manager.GetCustomersWithSuspiciousWinRates();
+                }).Count(), Is.EqualTo(3));
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.WinRateThreshold = 1; // no rate should be suspicious, even 100%
+                    return manager.GetCustomersWithSuspiciousWinRates();
+                }).Count(), Is.EqualTo(0));
         }
 
         [Test]
@@ -181,6 +205,43 @@ namespace CustomerRisk.Tests
         }
 
         [Test]
+        public void SupiciousStakeThreasholds_Are_10_And_30()
+        {
+            Assert.That(new SuspiciousBetManager(null).SuspiciousStakeThreshold, Is.EqualTo(10));
+            Assert.That(new SuspiciousBetManager(null).HighlySuspiciousStakeThreshold, Is.EqualTo(30));
+        }
+
+        [Test]
+        public void SupiciousStakeThreasholds_Thesholds_Are_Used()
+        {
+            SetBetData(_settledBets, _unsettledBetsSuspiciousStake);
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.SuspiciousStakeThreshold = 0; // any stake should be suspicious, even 0
+                    return manager.GetUnsettledBetsWithSuspiciousStakes();
+                }).Count(), Is.EqualTo(5));
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.SuspiciousStakeThreshold = 100000; // no stake should be suspicious
+                    return manager.GetUnsettledBetsWithSuspiciousStakes();
+                }).Count(), Is.EqualTo(0));
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.HighlySuspiciousStakeThreshold = 0; // any stake should be suspicious, even 0
+                    return manager.GetUnsettledBetsWithHighlySuspiciousStakes();
+                }).Count(), Is.EqualTo(5));
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.HighlySuspiciousStakeThreshold = 100000; // no stake should be suspicious
+                    return manager.GetUnsettledBetsWithHighlySuspiciousStakes();
+                }).Count(), Is.EqualTo(0));
+        }
+
+        [Test]
         public void GetUnsettledWithHighWinAmount_When_None_Suspicious()
         {
             SetBetData(_settledBets, _unsettledBets);
@@ -191,7 +252,7 @@ namespace CustomerRisk.Tests
         }
 
         [Test]
-        public void GetUnsettledWithWinAmount_When_Four_Suspicious()
+        public void GetUnsettledWithHighWinAmount_When_Four_Suspicious()
         {
             SetBetData(_settledBets, _unsettledBetsHighWinAmount);
 
@@ -203,6 +264,30 @@ namespace CustomerRisk.Tests
             Assert.That(actual.Count(o => o.Bet.CustomerId == 2), Is.EqualTo(1));
         }
 
+        [Test]
+        public void GetUnsettledWithHighWinAmount_Ensure_HighWinThreshold_Is_1000()
+        {
+            Assert.That(new SuspiciousBetManager(null).HighWinThreashold, Is.EqualTo(1000));
+        }
+
+        [Test]
+        public void GetUnsettledWithHighWinAmount_Ensure_HighWinThreshold_Is_Used()
+        {
+            SetBetData(_settledBets, _unsettledBetsHighWinAmount);
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.HighWinThreashold = 0; // any win should be suspicious, even $0 
+                    return manager.GetUnsettledWithHighWinAmount();
+                }).Count(), Is.EqualTo(5));
+
+            Assert.That(Test(manager =>
+                {
+                    _suspiciousBetManager.HighWinThreashold = decimal.MaxValue; // no win should be suspicious
+                    return manager.GetUnsettledWithHighWinAmount();
+                }).Count(), Is.EqualTo(0));
+        }
+
         private void SetBetData(IEnumerable<Bet> settledBets, IEnumerable<Bet> unsettledBets)
         {
             _betRepository = Mock.Of<IBetRepository>(o =>
@@ -212,14 +297,14 @@ namespace CustomerRisk.Tests
 
         public IEnumerable<SuspiciousBet> Test(Func<SuspiciousBetManager, IEnumerable<SuspiciousBet>> testFunc)
         {
-            _engine = new SuspiciousBetManager(_betRepository);
-            return testFunc(_engine);
+            _suspiciousBetManager = new SuspiciousBetManager(_betRepository);
+            return testFunc(_suspiciousBetManager);
         }
 
         public IEnumerable<Customer> Test(Func<SuspiciousBetManager, IEnumerable<Customer>> testFunc)
         {
-            _engine = new SuspiciousBetManager(_betRepository);
-            return testFunc(_engine);
+            _suspiciousBetManager = new SuspiciousBetManager(_betRepository);
+            return testFunc(_suspiciousBetManager);
         }
     }
 }
