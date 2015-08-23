@@ -58,11 +58,13 @@
     <Compile Include="Model\Bet.cs" />
     <Compile Include="Model\Bets.cs" />
     <Compile Include="Model\Customer.cs" />
+    <Compile Include="Model\SuspiciousBet.cs" />
+    <Compile Include="Model\SuspiciousReason.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\Impl\BetRepository.cs" />
     <Compile Include="Services\IBetRepository.cs" />
-    <Compile Include="Services\Impl\RiskAnalysisEngine.cs" />
+    <Compile Include="Services\Impl\SuspiciousBetManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
